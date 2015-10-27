@@ -1,0 +1,291 @@
+
+<!doctype html>
+<html>
+<head>
+    <title>Jonah Langlieb Books</title>
+
+    <style type="text/css">
+    body,html{
+        height: 100%;
+        width:100%;
+    }
+        #mynetwork {
+            width: 100%;
+            height: 100%;
+            /*border: 1px solid lightgray;*/
+        }
+        #loadingBar {
+            position:absolute;
+            top:0px;
+            left:0px;
+            width: 100%;
+            height: 100%;
+            background-color:rgba(200,200,200,0.8);
+            -webkit-transition: all 0.5s ease;
+            -moz-transition: all 0.5s ease;
+            -ms-transition: all 0.5s ease;
+            -o-transition: all 0.5s ease;
+            transition: all 0.5s ease;
+            opacity:1;
+        }
+        #wrapper {
+            position:relative;
+            width:100%;
+            height:100%;
+        }
+      #helpText {
+            position:absolute;
+            top:-40px;
+            left:120px;
+            width:100%;
+            height:100%;
+            margin:auto auto auto auto;
+            font-size:22px;
+            color: #000000;
+        }
+        #text {
+            position:absolute;
+            top:8px;
+            left:530px;
+            width:100%;
+            height:100%;
+            margin:auto auto auto auto;
+            font-size:22px;
+            color: #000000;
+        }
+
+
+        div.outerBorder {
+            position:relative;
+            top:400px;
+            width:600px;
+            height:44px;
+            margin:auto auto auto auto;
+            border:8px solid rgba(0,0,0,0.1);
+            background: rgb(252,252,252); /* Old browsers */
+            background: -moz-linear-gradient(top,  rgba(252,252,252,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,252,252,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+            background: -webkit-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+            background: -o-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+            background: -ms-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+            background: linear-gradient(to bottom,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+            border-radius:72px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+        }
+
+        #border {
+            position:absolute;
+            top:10px;
+            left:10px;
+            width:500px;
+            height:23px;
+            margin:auto auto auto auto;
+            box-shadow: 0px 0px 4px rgba(0,0,0,0.2);
+            border-radius:10px;
+        }
+
+        #bar {
+            position:absolute;
+            top:0px;
+            left:0px;
+            width:20px;
+            height:20px;
+            margin:auto auto auto auto;
+            border-radius:11px;
+            border:2px solid rgba(30,30,30,0.05);
+            background: rgb(0, 173, 246); /* Old browsers */
+            box-shadow: 2px 0px 4px rgba(0,0,0,0.4);
+        }
+    </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script type="text/javascript" src="vis.min.js"></script>
+    <link href="vis.min.css" rel="stylesheet" type="text/css"/>
+
+    <script type="text/javascript">
+    function generateNodes(callback){
+
+  $.getJSON("https://www.librarything.com/api_getdata.php?userid=lorem&key=3038189884&booksort=entry_REV&max=500&showReviews=1&reviewsOnly=1&callback=?", function(response) {
+         LTJSON = response.books
+console.log("DONE")
+         linkDataArray = []
+          nodeDataArray = []
+           allLinksConfirmed = []
+         for (var i in LTJSON) {
+             if (LTJSON[i].hasreview == "1" && LTJSON[i].bookreview.indexOf("@") != -1) {
+                 //has Review
+                 shortID = LTJSON[i].bookreview.match(/@\w*/)[0].replace("@", "")
+                 if (LTJSON[i].bookreview.indexOf("+") != -1) {
+                     //has edge id
+                     shortEdgeID = LTJSON[i].bookreview.match(/\+[A-z]*/)[0].replace("+", "")
+                 } else {
+                     //no edge
+                     shortEdgeID = "null"
+                 }
+        allLinksConfirmed.push(shortID.toLowerCase())
+         nodeDataArray.push({
+            // "shape": 'circularImage',
+             "label": htmlDecode(LTJSON[i].title.replace(/\(.*\)/, "")),
+             "title": htmlDecode(LTJSON[i].title.replace(/\(.*\)/, "")),
+             "id": shortID.toLowerCase()
+         })
+         linkDataArray.push({
+             "from": shortEdgeID.toLowerCase(),
+             "to": shortID.toLowerCase()
+         })
+             }
+
+       }
+       // for(var z in linkDataArray){
+       //  if(allLinksConfirmed.indexOf(linkDataArray[z].from)==-1){
+       //    console.log(linkDataArray[z].from)
+       //  }
+       // }
+       // nodeDataArray.push({
+       //  "shape": 'circularImage',
+       //       "label": "The GRAND Unknown",
+       //       "id": "null"
+       // })
+       callback([nodeDataArray, linkDataArray])
+     })
+}
+function htmlDecode(value) {
+    return $("<div/>").html(value).text();
+}
+
+        function draw() {
+            // create some nodes
+            allGeneratedNodes = generateNodes(function(valsReturned){
+        nodes = valsReturned[0]
+        edges = valsReturned[1]
+            // var nodes = [
+            //     {id: 0, "label": "Myriel", "group": 1},
+            //     {id: 1, "label": "Napoleon", "group": 1},
+            //     
+            // ];
+
+            // // create some edges
+            // var edges = [
+            //     {"from": 1, "to": 0},
+            //     {"from": 2, "to": 0},
+            //     {"from": 3, "to": 0},
+            //     {"from": 3, "to": 2},
+            //     {"from": 4, "to": 0},
+            //     {"from": 5, "to": 0},
+            //     {"from": 6, "to": 0},
+           
+            // ];
+
+            // create a network
+            var container = document.getElementById('mynetwork');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                // nodes: {
+                //     shape: 'dot',
+                //     size: 40
+                // },
+                interaction:{
+                tooltipDelay:0
+            },
+                // physics: {
+                //     forceAtlas2Based: {
+                //         gravitationalConstant: -26,
+                //         centralGravity: 0.005,
+                //         springLength: 230,
+                //         springConstant: 0.18
+                //     },
+                //     maxVelocity: 146,
+                //     solver: 'forceAtlas2Based',
+                //     timestep: 0.35,
+                //     stabilization: {iterations: 150}
+                // },
+                physics:{
+    enabled: true,
+    barnesHut: {
+      gravitationalConstant: -2000,
+      centralGravity: 0.3,
+      springLength: 95,
+      springConstant: 0.04,
+      damping: 0.09,
+      avoidOverlap: 0
+    },
+    forceAtlas2Based: {
+      gravitationalConstant: -50,
+      centralGravity: 0.01,
+      springConstant: 0.08,
+      springLength: 100,
+      damping: 0.4,
+      avoidOverlap: 0
+    },
+    repulsion: {
+      centralGravity: 0.2,
+      springLength: 200,
+      springConstant: 0.05,
+      nodeDistance: 100,
+      damping: 0.09
+    },
+    hierarchicalRepulsion: {
+      centralGravity: 0.0,
+      springLength: 100,
+      springConstant: 0.01,
+      nodeDistance: 120,
+      damping: 0.09
+    },
+    maxVelocity: 50,
+    minVelocity: 0.1,
+    solver: 'forceAtlas2Based',
+    stabilization: {
+      enabled: true,
+      iterations: 15,
+      updateInterval: 100,
+      onlyDynamicEdges: false,
+      fit: true
+    }
+},
+                layout:{
+                    improvedLayout:false
+                }
+            }
+            network = new vis.Network(container, data, options);
+                network.on("stabilizationProgress", function(params) {
+                var maxWidth = 496;
+                var minWidth = 20;
+                var widthFactor = params.iterations/params.total;
+                var width = Math.max(minWidth,maxWidth * widthFactor);
+
+                document.getElementById('bar').style.width = width + 'px';
+                document.getElementById('text').innerHTML = Math.round(widthFactor*100) + '%';
+            });
+            network.once("stabilizationIterationsDone", function() {
+                document.getElementById('text').innerHTML = '100%';
+                document.getElementById('bar').style.width = '496px';
+                document.getElementById('loadingBar').style.opacity = 0;
+                // really clean the dom element
+                setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
+            });
+})
+        }
+    </script>
+</head>
+
+<body onload="draw()">
+<p>
+    Hover (or click) over the nodes to see the titles. Zoom in to see more detail.
+</p> 
+<div id="wrapper">
+    <div id="mynetwork"></div>
+    <div id="loadingBar">
+        <div class="outerBorder">
+            <div id="helpText">Hover over or zoom to see title of book</div>
+            <div id="text">0%</div>
+            <div id="border">
+                <div id="bar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
